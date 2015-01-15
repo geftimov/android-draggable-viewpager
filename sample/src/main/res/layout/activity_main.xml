@@ -4,9 +4,9 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <TextView
-        android:text="@string/hello_world"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+    <com.eftimoff.draggableviewpager.DraggableViewPager
+        android:layout_width="match_parent" android:id="@+id/viewPager"
+        android:background="@android:color/holo_red_dark"
+        android:layout_height="match_parent" />
 
 </RelativeLayout>
