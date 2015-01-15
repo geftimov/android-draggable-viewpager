@@ -1,5 +1,5 @@
-## android-empty-project
-This is empty project to start open source library.
+## android-draggable-viewpager
+View pager with dragable views.
 
 ## Licence
 
