@@ -1,13 +1,9 @@
 package com.eftimoff.draggableviewpager;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.util.Log;
-import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup.LayoutParams;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -113,29 +109,12 @@ public class ExampleDraggableViewPagerAdapter implements DraggableViewPagerAdapt
 
     @Override
     public View view(int page, int index) {
-
-        LinearLayout layout = new LinearLayout(context);
-        layout.setOrientation(LinearLayout.VERTICAL);
-
-        ImageView icon = new ImageView(context);
+        final LayoutInflater layoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        final View view = layoutInflater.inflate(R.layout.my_text_view, null);
+        final TextView textView = (TextView) view.findViewById(R.id.info_text);
         Item item = getItem(page, index);
-        icon.setImageResource(item.getDrawable());
-        icon.setPadding(15, 15, 15, 15);
-
-        layout.addView(icon);
-
-        TextView label = new TextView(context);
-        label.setTag("text");
-        label.setText(item.getName());
-        label.setTextColor(Color.BLACK);
-        label.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL);
-
-        label.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
-
-        layout.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
-
-        layout.addView(label);
-        return layout;
+        textView.setText(item.getName());
+        return view;
     }
 
     private Item getItem(int page, int index) {

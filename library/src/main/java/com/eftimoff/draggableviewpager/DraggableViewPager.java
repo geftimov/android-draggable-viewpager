@@ -7,7 +7,6 @@ import android.view.GestureDetector.OnGestureListener;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.HorizontalScrollView;
-import android.widget.ScrollView;
 
 import com.eftimoff.draggableviewpager.callbacks.OnPageChangedListener;
 
@@ -73,21 +72,17 @@ public class DraggableViewPager extends HorizontalScrollView implements ViewPage
 
     public DraggableViewPager(Context context, DraggableViewPagerAdapter adapter) {
         super(context);
-
-
         this.adapter = adapter;
         initPagedScroll();
         initGrid();
     }
 
     private void initGrid() {
-        final ScrollView scrollView = new ScrollView(getContext());
         grid = new DragDropGrid(getContext());
-        scrollView.addView(grid);
         if (xmlRes != -1) {
             grid.setBackgroundResource(xmlRes);
         }
-        addView(scrollView);
+        addView(grid);
     }
 
     private void setBackground(AttributeSet attrs) {

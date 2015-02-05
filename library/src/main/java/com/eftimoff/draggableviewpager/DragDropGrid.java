@@ -114,7 +114,7 @@ public class DragDropGrid extends ViewGroup implements OnTouchListener, OnLongCl
 
             @Override
             public int rowCount() {
-                return AUTOMATIC;
+                return -1;
             }
 
             @Override
@@ -124,7 +124,7 @@ public class DragDropGrid extends ViewGroup implements OnTouchListener, OnLongCl
 
             @Override
             public int pageCount() {
-                return AUTOMATIC;
+                return -1;
             }
 
             @Override
@@ -846,7 +846,7 @@ public class DragDropGrid extends ViewGroup implements OnTouchListener, OnLongCl
     }
 
     private void adaptChildrenMeasuresToViewSize(int widthSize, int heightSize) {
-        if (adapter.columnCount() != DraggableViewPagerAdapter.AUTOMATIC && adapter.rowCount() != DraggableViewPagerAdapter.AUTOMATIC) {
+        if (adapter.columnCount() != -1 && adapter.rowCount() != -1) {
             int desiredGridItemWidth = widthSize / adapter.columnCount();
             int desiredGridItemHeight = heightSize / adapter.rowCount();
             measureChildren(MeasureSpec.makeMeasureSpec(desiredGridItemWidth, MeasureSpec.AT_MOST), MeasureSpec.makeMeasureSpec(desiredGridItemHeight, MeasureSpec.AT_MOST));

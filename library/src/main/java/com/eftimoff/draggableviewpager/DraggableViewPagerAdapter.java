@@ -4,10 +4,6 @@ import android.view.View;
 
 public interface DraggableViewPagerAdapter {
 
-    // Automatic child distribution
-    public final static int AUTOMATIC = -1;
-
-
     /**
      * Used to create the paging
      *
@@ -47,6 +43,7 @@ public interface DraggableViewPagerAdapter {
 
     /**
      * Prints the layout in Log.d();
+     * TODO Remove this.
      */
     public void printLayout();
 

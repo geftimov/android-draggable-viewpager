@@ -56,7 +56,7 @@ public class ExampleActivity extends Activity implements OnClickListener {
         gridview.setAdapter(adapter);
         gridview.setClickListener(this);
 
-        gridview.setBackgroundColor(Color.BLUE);
+        gridview.setBackgroundColor(Color.BLACK);
 
 
     }
