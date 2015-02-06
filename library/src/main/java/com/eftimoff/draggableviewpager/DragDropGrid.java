@@ -1,12 +1,10 @@
 package com.eftimoff.draggableviewpager;
 
 import android.content.Context;
-import android.content.res.Resources;
 import android.graphics.Point;
 import android.os.Handler;
 import android.util.AttributeSet;
 import android.util.SparseIntArray;
-import android.util.TypedValue;
 import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
@@ -16,8 +14,6 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.Animation;
-import android.view.animation.AnimationSet;
-import android.view.animation.RotateAnimation;
 import android.view.animation.ScaleAnimation;
 import android.view.animation.TranslateAnimation;
 
@@ -28,7 +24,6 @@ import java.util.TimerTask;
 
 public class DragDropGrid extends ViewGroup implements OnTouchListener, OnLongClickListener {
 
-    private static final String LOG_TAG = DragDropGrid.class.getSimpleName();
     public static final int ROW_HEIGHT = 300;
     private static int ANIMATION_DURATION = 250;
 
@@ -45,6 +40,7 @@ public class DragDropGrid extends ViewGroup implements OnTouchListener, OnLongCl
     private int rowHeightSize;
     private int computedColumnCount;
     private int computedRowCount;
+    private LockableScrollView lockableScrollView;
 
     private int initialX;
     private int initialY;
@@ -64,6 +60,7 @@ public class DragDropGrid extends ViewGroup implements OnTouchListener, OnLongCl
      * The height of the screen.
      */
     private int displayHeight;
+    private int measuredHeight;
 
     public DragDropGrid(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
@@ -244,15 +241,6 @@ public class DragDropGrid extends ViewGroup implements OnTouchListener, OnLongCl
         }
     }
 
-    private void animateMoveAllItems() {
-        Animation rotateAnimation = createFastRotateAnimation();
-
-        for (int i = 0; i < getItemViewCount(); i++) {
-            View child = getChildAt(i);
-            child.startAnimation(rotateAnimation);
-        }
-    }
-
     private void cancelAnimations() {
         for (int i = 0; i < getItemViewCount() - 2; i++) {
             View child = getChildAt(i);
@@ -283,6 +271,28 @@ public class DragDropGrid extends ViewGroup implements OnTouchListener, OnLongCl
         return false;
     }
 
+    private boolean scrollIfNeeded() {
+        int height = displayHeight;
+        final View draggedView = getDraggedView();
+        int hoverHeight = draggedView.getHeight();
+        int scrollAmount = 20;
+
+
+        int[] locations = new int[2];
+        draggedView.getLocationOnScreen(locations);
+        int y = locations[1];
+        if (y <= 0) {
+            lockableScrollView.scrollBy(0, -scrollAmount);
+            return true;
+        }
+        if (y + hoverHeight >= height) {
+            lockableScrollView.scrollBy(0, scrollAmount);
+            return true;
+        }
+
+        return false;
+    }
+
     private void touchUp(MotionEvent event) {
         if (!aViewIsDragged()) {
             if (onClickListener != null) {
@@ -292,7 +302,7 @@ public class DragDropGrid extends ViewGroup implements OnTouchListener, OnLongCl
             }
         } else {
             cancelAnimations();
-
+            lockableScrollView.setScrollingEnabled(true);
             manageChildrenReordering();
             cancelEdgeTimer();
 
@@ -330,16 +340,15 @@ public class DragDropGrid extends ViewGroup implements OnTouchListener, OnLongCl
     }
 
     private void touchMove(MotionEvent event) {
-//        Log.i(LOG_TAG, "INIT Heigth :" + lastTouchX + " Width : " + lastTouchY);
         if (movingView && aViewIsDragged()) {
             lastTouchX = (int) event.getX();
             lastTouchY = (int) event.getY();
 
             ensureThereIsNoArtifact();
-
             moveDraggedView(lastTouchX, lastTouchY);
             manageSwapPosition(lastTouchX, lastTouchY);
             manageEdgeCoordinates(lastTouchX);
+            scrollIfNeeded();
         }
     }
 
@@ -421,7 +430,6 @@ public class DragDropGrid extends ViewGroup implements OnTouchListener, OnLongCl
                         public void run() {
                             scroll(onRightEdge, onLeftEdge);
                             cancelAnimations();
-                            animateMoveAllItems();
                             animateDragged();
                         }
                     });
@@ -455,6 +463,7 @@ public class DragDropGrid extends ViewGroup implements OnTouchListener, OnLongCl
         dragged = positionOfItem(currentPage, lastItem);
 
         stopAnimateOnTheEdge();
+        lockableScrollView.scrollTo(0, 0);
     }
 
     private void scrollToPreviousPage() {
@@ -467,6 +476,7 @@ public class DragDropGrid extends ViewGroup implements OnTouchListener, OnLongCl
         dragged = positionOfItem(currentPage, lastItem);
 
         stopAnimateOnTheEdge();
+        lockableScrollView.scrollTo(0, 0);
     }
 
     private void moveDraggedToPreviousPage() {
@@ -578,8 +588,6 @@ public class DragDropGrid extends ViewGroup implements OnTouchListener, OnLongCl
 
         View targetView = getChildView(viewAtPosition);
 
-//	      Log.e("animateGap target", ((TextView)targetView.findViewWithTag("text")).getText().toString());
-
         Point oldXY = getCoorForIndex(viewAtPosition);
         Point newXY = getCoorForIndex(newPositions.get(dragged, dragged));
 
@@ -616,16 +624,9 @@ public class DragDropGrid extends ViewGroup implements OnTouchListener, OnLongCl
     }
 
     private void animateMoveToNewPosition(View targetView, Point oldOffset, Point newOffset) {
-        AnimationSet set = new AnimationSet(true);
-
-        Animation rotate = createFastRotateAnimation();
         Animation translate = createTranslateAnimation(oldOffset, newOffset);
-
-        set.addAnimation(rotate);
-        set.addAnimation(translate);
-
         targetView.clearAnimation();
-        targetView.startAnimation(set);
+        targetView.startAnimation(translate);
     }
 
     private TranslateAnimation createTranslateAnimation(Point oldOffset, Point newOffset) {
@@ -638,22 +639,6 @@ public class DragDropGrid extends ViewGroup implements OnTouchListener, OnLongCl
         translate.setFillAfter(true);
         translate.setInterpolator(new AccelerateDecelerateInterpolator());
         return translate;
-    }
-
-    private Animation createFastRotateAnimation() {
-        Animation rotate = new RotateAnimation(-2.0f,
-                2.0f,
-                Animation.RELATIVE_TO_SELF,
-                0.5f,
-                Animation.RELATIVE_TO_SELF,
-                0.5f);
-
-        rotate.setRepeatMode(Animation.REVERSE);
-        rotate.setRepeatCount(Animation.INFINITE);
-        rotate.setDuration(60);
-        rotate.setInterpolator(new AccelerateDecelerateInterpolator());
-
-        return rotate;
     }
 
     private int currentViewAtPosition(int targetLocation) {
@@ -769,8 +754,8 @@ public class DragDropGrid extends ViewGroup implements OnTouchListener, OnLongCl
         widthSize = remeasure(widthMode, widthSize);
         int largestSize = getLargestPageSize();
 
-
-        setMeasuredDimension(widthSize * adapter.pageCount(), largestSize * rowHeightSize);
+        measuredHeight = largestSize * rowHeightSize;
+        setMeasuredDimension(widthSize * adapter.pageCount(), measuredHeight);
     }
 
     private int remeasure(int widthMode, int widthSize) {
@@ -794,59 +779,9 @@ public class DragDropGrid extends ViewGroup implements OnTouchListener, OnLongCl
         return size;
     }
 
-    private float getPixelFromDip(int size) {
-        Resources r = getResources();
-        float px = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, size, r.getDisplayMetrics());
-        return px;
-    }
-
-    private void computeColumnsAndRowsSizes(int widthSize, int heightSize) {
-
-    }
-
-    private void computeGridMatrixSize(int widthSize, int heightSize) {
-        if (adapter.columnCount() != -1) {
-
-        }
-        if (adapter.rowCount() != -1) {
-            computedRowCount = adapter.rowCount();
-        } else {
-//            computedRowCount = heightSize / biggestChildHeight;
-
-        }
-
-        if (computedColumnCount == 0) {
-            computedColumnCount = 1;
-        }
-
-        if (computedRowCount == 0) {
-            computedRowCount = 1;
-        }
-    }
-
-
 
     private int getItemViewCount() {
         return views.size();
-    }
-
-    private void adaptChildrenMeasuresToViewSize(int widthSize, int heightSize) {
-        if (adapter.columnCount() != -1 && adapter.rowCount() != -1) {
-            int desiredGridItemWidth = widthSize / adapter.columnCount();
-            int desiredGridItemHeight = heightSize / adapter.rowCount();
-            measureChildren(MeasureSpec.makeMeasureSpec(desiredGridItemWidth, MeasureSpec.AT_MOST), MeasureSpec.makeMeasureSpec(desiredGridItemHeight, MeasureSpec.AT_MOST));
-        } else {
-            measureChildren(MeasureSpec.UNSPECIFIED, MeasureSpec.UNSPECIFIED);
-        }
-    }
-
-    @SuppressWarnings("deprecation")
-    private int acknowledgeHeightSize(int heightMode, int heightSize, int displayHeight) {
-        if (heightMode == MeasureSpec.UNSPECIFIED) {
-            heightSize = displayHeight;
-        }
-        gridPageHeight = heightSize;
-        return heightSize;
     }
 
     private int acknowledgeWidthSize(int widthMode, int widthSize, int displayWidth) {
@@ -932,13 +867,11 @@ public class DragDropGrid extends ViewGroup implements OnTouchListener, OnLongCl
     public boolean onLongClick(View v) {
         if (positionForView(v) != -1) {
             container.disableScroll();
-
+            lockableScrollView.setScrollingEnabled(false);
             movingView = true;
             dragged = positionForView(v);
 
             bringDraggedToFront();
-
-            animateMoveAllItems();
 
             animateDragged();
 
@@ -1057,6 +990,11 @@ public class DragDropGrid extends ViewGroup implements OnTouchListener, OnLongCl
     private void tellAdapterToMoveItemToNextPage(int itemIndex) {
         ItemPosition itemPosition = itemInformationAtPosition(itemIndex);
         adapter.moveItemToNextPage(itemPosition.pageIndex, itemPosition.itemIndex);
+    }
+
+    public void setLockableScrollView(LockableScrollView lockableScrollView) {
+        this.lockableScrollView = lockableScrollView;
+        lockableScrollView.setScrollingEnabled(true);
     }
 
     private class ItemPosition {
