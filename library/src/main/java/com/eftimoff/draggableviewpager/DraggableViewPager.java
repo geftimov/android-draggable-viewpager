@@ -7,7 +7,9 @@ import android.view.GestureDetector;
 import android.view.GestureDetector.OnGestureListener;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.HorizontalScrollView;
+import android.widget.ScrollView;
 
 import com.eftimoff.draggableviewpager.callbacks.OnPageChangedListener;
 
@@ -79,48 +81,49 @@ public class DraggableViewPager extends HorizontalScrollView implements ViewPage
     }
 
     private void initGrid() {
-//        final ViewGroup.LayoutParams layoutParams = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-//        final ScrollView scrollView = new ScrollView(getContext()) {
-//            // true if we can scroll (not locked)
-//            // false if we cannot scroll (locked)
-//            private boolean mScrollable = false;
-//
-//            public void setScrollingEnabled(boolean enabled) {
-//                mScrollable = enabled;
-//            }
-//
-//            public boolean isScrollable() {
-//                return mScrollable;
-//            }
-//
-//            @Override
-//            public boolean onTouchEvent(MotionEvent ev) {
-//                switch (ev.getAction()) {
-//                    case MotionEvent.ACTION_DOWN:
-//                        // if we can scroll pass the event to the superclass
-//                        if (mScrollable) return super.onTouchEvent(ev);
-//                        // only continue to handle the touch event if scrolling enabled
-//                        return mScrollable; // mScrollable is always false at this point
-//                    default:
-//                        return super.onTouchEvent(ev);
-//                }
-//            }
-//
-//            @Override
-//            public boolean onInterceptTouchEvent(MotionEvent ev) {
-//                // Don't do anything with intercepted touch events if
-//                // we are not scrollable
-//                if (!mScrollable) return false;
-//                else return super.onInterceptTouchEvent(ev);
-//            }
-//
-//        };
+        final ViewGroup.LayoutParams layoutParams = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        final ScrollView scrollView = new ScrollView(getContext()) {
+            // true if we can scroll (not locked)
+            // false if we cannot scroll (locked)
+            private boolean mScrollable = false;
+
+            public void setScrollingEnabled(boolean enabled) {
+                mScrollable = enabled;
+            }
+
+            public boolean isScrollable() {
+                return mScrollable;
+            }
+
+            @Override
+            public boolean onTouchEvent(MotionEvent ev) {
+                switch (ev.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        // if we can scroll pass the event to the superclass
+                        if (mScrollable) return super.onTouchEvent(ev);
+                        // only continue to handle the touch event if scrolling enabled
+                        return mScrollable; // mScrollable is always false at this point
+                    default:
+                        return super.onTouchEvent(ev);
+                }
+            }
+
+            @Override
+            public boolean onInterceptTouchEvent(MotionEvent ev) {
+                // Don't do anything with intercepted touch events if
+                // we are not scrollable
+                if (!mScrollable) return false;
+                else return super.onInterceptTouchEvent(ev);
+            }
+
+        };
         grid = new DragDropGrid(getContext());
         if (xmlRes != -1) {
             grid.setBackgroundResource(xmlRes);
         }
-//        scrollView.addView(grid);
-        addView(grid);
+        scrollView.addView(grid);
+        addView(scrollView, layoutParams);
+//        addView(grid);
     }
 
     private void setBackground(AttributeSet attrs) {
@@ -143,7 +146,6 @@ public class DraggableViewPager extends HorizontalScrollView implements ViewPage
                 boolean specialEventUsed = gestureScanner.onTouchEvent(event);
                 if (!specialEventUsed && (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL)) {
                     int scrollX = getScrollX();
-                    Log.i("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", "SCROLL x " + scrollX + " SCROLL y " + getScrollY());
                     int onePageWidth = v.getMeasuredWidth();
                     int page = ((scrollX + (onePageWidth / 2)) / onePageWidth);
                     scrollToPage(page);
