@@ -1,6 +1,9 @@
 ## android-draggable-viewpager
 View pager with dragable views.
 
+## Show
+![svg](https://github.com/geftimov/android-draggable-viewpager/blob/master/art/intro.gif)
+
 ## Licence
 
     Copyright 2015 Georgi Eftimov
