@@ -77,21 +77,6 @@ public class ExampleActivity extends Activity implements OnClickListener {
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        menu.add("Reset").setOnMenuItemClickListener(new OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                gridview.setAdapter(new ExampleDraggableViewPagerAdapter(ExampleActivity.this, gridview));
-                gridview.notifyDataSetChanged();
-
-                return true;
-            }
-        });
-
-        return true;
-    }
-
-    @Override
     public void onClick(View v) {
         Toast.makeText(this, "Clicked View", Toast.LENGTH_SHORT).show();
     }
