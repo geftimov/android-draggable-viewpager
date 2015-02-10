@@ -2,7 +2,7 @@
 View pager with dragable views.
 
 ## Show
-![svg](https://github.com/geftimov/android-draggable-viewpager/blob/master/art/intro.gif)
+![svg](https://github.com/geftimov/android-draggable-viewpager/blob/master/art/intro.gif) 
 
 ## Licence
 
